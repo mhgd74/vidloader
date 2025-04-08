@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": false,
+  "outputDirectory": "public",
+  "github": {
+    "silent": true
+  },
+  "public": true,
+  "cleanUrls": true,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
