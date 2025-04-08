@@ -80,24 +80,73 @@ app.get('/api/download', async (req, res) => {
     const { url, itag, format } = req.query;
     
     if (!url || !itag) {
-      return res.status(400).json({ error: 'URL and itag are required' });
+      return res.status(400).json({ error: 'يجب توفير رابط الفيديو ومعرف الجودة' });
     }
 
     if (!ytdl.validateURL(url)) {
-      return res.status(400).json({ error: 'Invalid YouTube URL' });
+      return res.status(400).json({ error: 'رابط يوتيوب غير صالح' });
     }
 
     const info = await ytdl.getInfo(url);
     const videoTitle = info.videoDetails.title.replace(/[^\w\s]/gi, '');
     
-    // Set appropriate headers for download
+    // التحقق من توفر التنسيق المطلوب
+    const selectedFormat = info.formats.find(f => f.itag === parseInt(itag));
+    if (!selectedFormat) {
+      return res.status(400).json({ error: 'تنسيق الفيديو المطلوب غير متوفر' });
+    }
+
+    // التحقق من حجم الملف
+    if (selectedFormat.contentLength) {
+      const fileSizeInMB = parseInt(selectedFormat.contentLength) / (1024 * 1024);
+      if (fileSizeInMB > 500) { // حد أقصى 500 ميجابايت
+        return res.status(400).json({ error: 'حجم الملف كبير جداً. الحد الأقصى هو 500 ميجابايت' });
+      }
+    }
+
+    // إعداد رأس الاستجابة للتحميل
     res.header('Content-Disposition', `attachment; filename="${videoTitle}.${format || 'mp4'}"`);
     
-    // Stream the video
-    ytdl(url, { quality: itag }).pipe(res);
+    // إعداد خيارات التحميل
+    const downloadOptions = {
+      quality: itag,
+      filter: format === 'mp3' ? 'audioonly' : 'videoandaudio'
+    };
+
+    // بدء تدفق الفيديو
+    const videoStream = ytdl(url, downloadOptions);
+    
+    // معالجة أحداث التدفق
+    videoStream.on('error', (error) => {
+      console.error('خطأ في تدفق الفيديو:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'حدث خطأ أثناء تحميل الفيديو' });
+      }
+    });
+
+    videoStream.on('progress', (chunkLength, downloaded, total) => {
+      if (total) {
+        const percent = (downloaded / total * 100).toFixed(2);
+        console.log(`تقدم التحميل: ${percent}%`);
+      }
+    });
+
+    // بدء التدفق إلى المستجيب
+    videoStream.pipe(res);
+
+    // معالجة إغلاق الاتصال
+    res.on('close', () => {
+      videoStream.destroy();
+    });
   } catch (error) {
-    console.error('Error downloading video:', error);
-    res.status(500).json({ error: 'Failed to download video' });
+    console.error('خطأ في تحميل الفيديو:', error);
+    if (error.message.includes('age-restricted')) {
+      res.status(403).json({ error: 'هذا الفيديو مقيد بالعمر ولا يمكن تحميله' });
+    } else if (error.message.includes('copyright')) {
+      res.status(403).json({ error: 'هذا الفيديو محمي بحقوق النشر' });
+    } else {
+      res.status(500).json({ error: 'فشل تحميل الفيديو: ' + error.message });
+    }
   }
 });
 
