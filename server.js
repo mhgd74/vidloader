@@ -19,6 +19,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Ensure README.md is not served as default
+app.get('/README.md', (req, res) => {
+  res.redirect('/');
+});
+
 // API endpoint to get video info
 app.post('/api/info', async (req, res) => {
   try {
