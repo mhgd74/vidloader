@@ -1,14 +1,22 @@
 {
   "version": 2,
-  "buildCommand": false,
-  "outputDirectory": "public",
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server.js" },
+    { "src": "/", "dest": "server.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "server.js" }
+  ],
   "github": {
     "silent": true
-  },
-  "public": true,
-  "cleanUrls": true,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  }
 }
