@@ -60,6 +60,12 @@ app.post('/api/info', async (req, res) => {
       res.status(403).json({ error: 'الفيديو خاص ولا يمكن الوصول إليه' });
     } else if (error.message.includes('This video is unavailable')) {
       res.status(404).json({ error: 'هذا الفيديو غير متاح في بلدك' });
+    } else if (error.message.includes('Status code: 410')) {
+      res.status(410).json({ error: 'الفيديو غير متاح بسبب تغييرات في YouTube API' });
+    } else if (error.message.includes('network timeout')) {
+      res.status(408).json({ error: 'انتهت مهلة الاتصال، يرجى المحاولة مرة أخرى' });
+    } else if (error.message.includes('rate limit')) {
+      res.status(429).json({ error: 'تم تجاوز الحد المسموح به، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى' });
     } else {
       res.status(500).json({ error: 'فشل جلب معلومات الفيديو: ' + error.message });
     }
