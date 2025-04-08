@@ -54,7 +54,15 @@ app.post('/api/info', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching video info:', error);
-    res.status(500).json({ error: 'Failed to fetch video info' });
+    if (error.message.includes('Video unavailable')) {
+      res.status(404).json({ error: 'الفيديو غير متاح أو محذوف' });
+    } else if (error.message.includes('Private video')) {
+      res.status(403).json({ error: 'الفيديو خاص ولا يمكن الوصول إليه' });
+    } else if (error.message.includes('This video is unavailable')) {
+      res.status(404).json({ error: 'هذا الفيديو غير متاح في بلدك' });
+    } else {
+      res.status(500).json({ error: 'فشل جلب معلومات الفيديو: ' + error.message });
+    }
   }
 });
 
