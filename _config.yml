@@ -3,10 +3,17 @@ baseurl: ""
 url: ""
 
 # تحديد المجلد الذي يحتوي على الموقع
-source: public
+source: .
 
 # تحديد المجلد الذي سيتم نشر الموقع فيه
 destination: _site
+
+# تحديد الفرع الذي سيتم استخدامه
+branch: main
+
+# تفعيل خيار include للتأكد من تضمين جميع الملفات
+include:
+  - ".nojekyll"
 
 # تجاهل بعض الملفات والمجلدات
 exclude:
