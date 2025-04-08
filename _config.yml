@@ -1,0 +1,17 @@
+# إعدادات GitHub Pages
+baseurl: ""
+url: ""
+
+# تحديد المجلد الذي يحتوي على الموقع
+source: public
+
+# تحديد المجلد الذي سيتم نشر الموقع فيه
+destination: _site
+
+# تجاهل بعض الملفات والمجلدات
+exclude:
+  - README.md
+  - node_modules
+  - package.json
+  - package-lock.json
+  - server.js
